@@ -8,7 +8,7 @@ void print_at(const char* input, int x, int y){
         pos += 2;
     }
 }
-
+/*fonction du logo*/
 void afficher_logo(void){
     print_at("           .d88888b.    .d8888b.", 24, 8);
     print_at("          d888P" "Y888b  d88P  Y88b", 24, 9);
@@ -19,7 +19,7 @@ void afficher_logo(void){
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14);
     print_at(" 88888P'  \"Y88888P\"    \"Y8888P\"", 24, 15);
 }
-
+/*fonction principale*/
 void main() {
     volatile char* video_memory = (volatile char*)0xb8000;
     for (int i = 0; i < 80 * 25 * 2; i += 2) {
