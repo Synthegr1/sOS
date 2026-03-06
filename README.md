@@ -1,1 +1,1 @@
-# sOS
+# sOS en cours de développement
