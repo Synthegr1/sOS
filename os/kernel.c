@@ -32,7 +32,6 @@ void main() {
     clear();
     afficher_logo();
     bureau();
-    break();
 }
 /*bureau*/
 void bureau(){
