@@ -23,13 +23,21 @@ void afficher_logo(void){
 void clear(){
     volatile char* video_memory = (volatile char*)0xb8000;
     for (int i = 0; i < 80 * 25 * 2; i += 2) {
-        video_memory[i] = ' ';      
-        video_memory[i+1] = 0x07;  
+        video_memory[i] = ' ';
+        video_memory[i+1] = 0x07;
     }
 }
 /*fonction principale*/
 void main() {
     clear();
     afficher_logo();
+    while(1);
+    bureau();
+    break();
+}
+/*bureau*/
+void bureau(){
+    clear();
+    print_at("voici le Bureau", 24, 8);
     while(1);
 }
