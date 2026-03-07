@@ -34,10 +34,17 @@ void bureau(){
     while (1) __asm__ volatile ("hlt");
 }
 
+//Fonction Delay() /!/ il faut mettre BCP dans le count
+void delay(int count){
+    for(int x = 0; x < count * 10000000; x++){
+        asm volatile("nop");
+    }
+}
+
 /*fonction principale*/
 void main() {
     clear();
     afficher_logo();
-    delay(50);
+    delay(70);
     bureau();
 }
