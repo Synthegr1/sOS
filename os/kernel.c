@@ -31,7 +31,6 @@ void clear(){
 void main() {
     clear();
     afficher_logo();
-    while(1);
     bureau();
     break();
 }
