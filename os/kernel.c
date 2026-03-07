@@ -8,6 +8,7 @@ void print_at(const char* input, int x, int y, int color){
         pos += 2;
     }
 }
+
 /*fonction du logo*/
 void afficher_logo(void){
     print_at("           .d88888b.    .d8888b.", 24, 8, 0x0E);
@@ -19,6 +20,7 @@ void afficher_logo(void){
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
     print_at(" 88888P'  \"Y88888P\"    \"Y8888P\"", 24, 15, 0x0E);
 }
+
 /*fonction de clear de l'écran*/
 void clear(){
     volatile char* video_memory = (volatile char*)0xb8000;
@@ -27,6 +29,7 @@ void clear(){
         video_memory[i+1] = 0x07;
     }
 }
+
 /*bureau*/
 void bureau(){
     clear();
