@@ -30,7 +30,7 @@ void clear(){
 /*bureau*/
 void bureau(){
     clear();
-    print_at("voici le Bureau", 24, 8, 0x0E);
+    print_at("voici le Bureau", 24, 8, 0x0F);
     while(1);
 }
 
