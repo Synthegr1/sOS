@@ -38,5 +38,6 @@ void bureau(){
 void main() {
     clear();
     afficher_logo();
+    delay(50);
     bureau();
 }
