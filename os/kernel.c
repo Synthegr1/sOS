@@ -30,7 +30,7 @@ void clear(){
 /*bureau*/
 void bureau(){
     clear();
-    print_at("voici le Bureau", 24, 8, 0xF0);
+    print_at("voici le Bureau", 24, 8, 0x03);
     while (1) __asm__ volatile ("hlt");
 }
 
