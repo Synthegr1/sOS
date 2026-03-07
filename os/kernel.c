@@ -1,18 +1,25 @@
 //Fonction pour intteroger un port processeur (port)
 static inline unsigned char inb(unsigned short port) {
-    unsigned char val;
-    asm volatile ("inb %1, %0" : "=a"(val) : "Nd"(port));
-    return val;
+    unsigned char val; //On définit val comme ce qui sera la réponse du port
+    asm volatile ("inb %1, %0" : "=a"(val) : "Nd"(port)); //On demande au processeur avec 'asm'
+    return val; //On retourne 'asm'
 }
 
-void print_at(const char* input, int x, int y, int color){
-    volatile char* video_memory = (volatile char*)0xb8000;
+//'asm' ajit comme si on disait au C : "Tu sais pas faire ça, on s'en fiche, demande le au processeur tkt !"
 
-    int pos = (y * 80 + x) * 2;
-    for(int i = 0; input[i] != '\0'; i++){
-        video_memory[pos] = input[i];
-        video_memory[pos + 1] = color;
-        pos += 2;
+//Mémoire Vidéo VGA : Il y a des positions où on peut écrire sur l'écran, chaque psoition fait
+//2 octets, 1 pour le caractère à afficher et 1 pour la couleur et le fond (ex : vert sur fond noir (sur dcp le 2e octet) = 0x02)
+
+//Fonction équivalent printf, à executer avec comme argument l'élément a afficher, la postion x,
+//la position y et la couleur (ex : vert = 0x01)
+void print_at(const char* input, int x, int y, int color){
+    volatile char* video_memory = (volatile char*)0xb8000; //On définit l'emplacement de la mémoire vidéo VGA
+
+    int pos = (y * 80 + x) * 2; //Position du curseur x y ou on va écrire le texte
+    for(int i = 0; input[i] != '\0'; i++){ //For pour l'écriture des différents caractères du char input un par un
+        video_memory[pos] = input[i]; //on écrit le caractère sur le premier octet de l'emplacement vidéo
+        video_memory[pos + 1] = color; //on écrit le couleur et le fond sur le deuxième octet de l'emplacement vidéo
+        pos += 2; //On rajoute 2 au curseur pour le caractère suivant (caractère + mise en forme)
     }
 }
 
@@ -31,7 +38,7 @@ char input() {
     return 0; //Retour null si c pas bon
 }
 
-/*fonction du logo*/
+/*Fonction du logo*/
 void afficher_logo(void){
     print_at("           .d88888b.    .d8888b.", 24, 8, 0x0E);
     print_at("          d888P" "Y888b  d88P  Y88b", 24, 9, 0x0E);
@@ -42,19 +49,21 @@ void afficher_logo(void){
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
     print_at(" 88888P'  \"Y88888P\"    \"Y8888P\"", 24, 15, 0x0E);
 }
-/*fonction de clear de l'écran*/
+
+/*Fonction de clear de l'écran*/
 void clear(){
-    volatile char* video_memory = (volatile char*)0xb8000;
-    for (int i = 0; i < 80 * 25 * 2; i += 2) {
-        video_memory[i] = ' ';
-        video_memory[i+1] = 0x07;
+    volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
+    for (int i = 0; i < 80 * 25 * 2; i += 2) { //For pour passer par tous les emplacements VGA de l'écran
+        video_memory[i] = ' '; //On remplace par du vide
+        video_memory[i+1] = 0x07;//Blanc sur fond noir
     }
 }
-/*bureau*/
+
+/*Bureau*/
 void bureau(){
-    clear();
-    print_at("sOS -- Main :", 0, 0, 0x03);
-    print_at("Vous tapez : ", 0, 1, 0x02);
+    clear(); //On appelle la fonction 'clear' pour vider l'écran
+    print_at("sOS -- Main :", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
+    print_at("Vous tapez : ", 0, 1, 0x02); //Texte affiché en vert sur fond noir
     
     int cursor_x = 14; //On définit un curseur x
     while (1) /*__asm__ volatile ("hlt")*/{
@@ -66,15 +75,16 @@ void bureau(){
     }
 }
 
-void delay(int count){
-    for(int x = 0; x < count * 10000000; x++){
-        asm volatile("nop");
+//Fonction delay
+void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
+    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
+        asm volatile("nop"); //On ne fait rien
     }
 }
 
-/*fonction principale*/
+/*Fonction principale appelé par le linker.ld*/
 void main() {
-    clear();
+    clear(); //
     afficher_logo();
     delay(70);
     bureau();
