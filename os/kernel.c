@@ -31,7 +31,7 @@ void clear(){
 void bureau(){
     clear();
     print_at("voici le Bureau", 24, 8, 1xF0);
-    while(1);
+    while (1) __asm__ volatile ("hlt");
 }
 
 /*fonction principale*/
