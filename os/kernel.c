@@ -27,15 +27,16 @@ void clear(){
         video_memory[i+1] = 0x07;
     }
 }
-/*fonction principale*/
-void main() {
-    clear();
-    afficher_logo();
-    bureau();
-}
 /*bureau*/
 void bureau(){
     clear();
     print_at("voici le Bureau", 24, 8);
     while(1);
+}
+
+/*fonction principale*/
+void main() {
+    clear();
+    afficher_logo();
+    bureau();
 }
