@@ -19,15 +19,17 @@ void afficher_logo(void){
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14);
     print_at(" 88888P'  \"Y88888P\"    \"Y8888P\"", 24, 15);
 }
-/*fonction principale*/
-void main() {
+/*fonction de clear de l'écran*/
+void clear(){
     volatile char* video_memory = (volatile char*)0xb8000;
     for (int i = 0; i < 80 * 25 * 2; i += 2) {
         video_memory[i] = ' ';      
         video_memory[i+1] = 0x07;  
     }
-
+}
+/*fonction principale*/
+void main() {
+    clear();
     afficher_logo();
-
     while(1);
 }
