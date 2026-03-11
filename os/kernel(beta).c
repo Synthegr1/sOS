@@ -4,12 +4,6 @@ static inline unsigned char inb(unsigned short port) {
     asm volatile ("inb %1, %0" : "=a"(val) : "Nd"(port)); //On demande au processeur avec 'asm'
     return val; //On retourne 'asm'
 }
-//Fonction delay
-void delay(long long count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2~3 sec))
-    for(int x = 0; x < count * 1000000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
-        asm volatile("nop"); //On ne fait rien
-    }
-}
 
 //'asm' ajit comme si on disait au C : "Tu sais pas faire ça, on s'en fiche, demande le au processeur tkt !"
 
@@ -20,6 +14,7 @@ void delay(long long count){ //Prend count en entrée pour indiqué a peu près 
 //la position y et la couleur (ex : vert = 0x01)
 void print_at(const char* input, int x, int y, int color){
     volatile char* video_memory = (volatile char*)0xb8000; //On définit l'emplacement de la mémoire vidéo VGA
+
     int pos = (y * 80 + x) * 2; //Position du curseur x y ou on va écrire le texte
     for(int i = 0; input[i] != '\0'; i++){ //For pour l'écriture des différents caractères du char input un par un
         video_memory[pos] = input[i]; //on écrit le caractère sur le premier octet de l'emplacement vidéo
@@ -53,7 +48,6 @@ void afficher_logo(void){
     print_at("\"Y8888b. 888     888        \"888", 24, 13, 0x0E);
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
     print_at(" 88888P'  \"Y88888P\"    \"Y8888P\"", 24, 15, 0x0E);
-    delay(200);
 }
 
 /*Fonction de clear de l'écran*/
@@ -67,6 +61,7 @@ void clear(){
 
 /*Bureau*/
 void bureau(){
+    clear(); //On appelle la fonction 'clear' pour vider l'écran
     print_at("sOS -- Main :", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
     print_at("Vous tapez : ", 0, 1, 0x02); //Texte affiché en vert sur fond noir
     
@@ -77,21 +72,26 @@ void bureau(){
             char str[2] = {c, "\0" && c != '?'}; //on met l input dans un char si c différent de '?'
             print_at(str, cursor_x++, 1, 0x02); //On affiche en vert (0x02)
         }
-        
-        if (c == '\b') {
-            print_at(" ", cursor_x--, 1, 0x02); //On affiche un espace à la position du curseur pour effacer le caractère précédent
-            print_at(" ", cursor_x--, 1, 0x02); //On affiche un espace à la position du curseur pour effacer le caractère précédent
-        }
-        
+
+    
+        //if(c == '\b'){ //Si c'est la touche de suppression (backspace)
+        //    print_at(" ", cursor_x--, 1, 0x02); //On affiche un espace pour effacer le caractère de avant *2
+        //    print_at(" ", cursor_x--, 1, 0x02);
+        //}
     }
 }
 
+//Fonction delay
+void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
+    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
+        asm volatile("nop"); //On ne fait rien
+    }
+}
 
 /*Fonction principale appelé par le linker.ld*/
 void main() {
-    clear(); 
+    clear(); //
     afficher_logo();
-    delay(2000000000);
-    clear(); //On appelle la fonction 'clear' pour vider l'écran
+    delay(70);
     bureau();
 }
