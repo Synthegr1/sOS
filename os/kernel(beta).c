@@ -1,3 +1,4 @@
+    int p = 0;
 //Fonction pour intteroger un port processeur (port)
 static inline unsigned char inb(unsigned short port) {
     unsigned char val; //On définit val comme ce qui sera la réponse du port
@@ -47,7 +48,7 @@ void afficher_logo(void){
     print_at("88K      888     888      \"Y88b.", 24, 12, 0x0E);
     print_at("\"Y8888b. 888     888        \"888", 24, 13, 0x0E);
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
-    print_at(" 88888P'  \"Y88888P\"    \"Y8888P\"", 24, 15, 0x0E);
+    print_at(" 88888P'  \"YBBBBBP\"    \"Y8888P\"", 24, 15, 0x0E);
 }
 
 /*Fonction de clear de l'écran*/
@@ -55,31 +56,10 @@ void clear(){
     volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
     for (int i = 0; i < 80 * 25 * 2; i += 2) { //For pour passer par tous les emplacements VGA de l'écran
         video_memory[i] = ' '; //On remplace par du vide
-        video_memory[i+1] = 0x07;//Blanc sur fond noir
+        video_memory[i+1] = 0x0F;//Blanc sur fond noir
     }
 }
 
-/*Bureau*/
-void bureau(){
-    clear(); //On appelle la fonction 'clear' pour vider l'écran
-    print_at("sOS -- Main :", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
-    print_at("Vous tapez : ", 0, 1, 0x02); //Texte affiché en vert sur fond noir
-    
-    int cursor_x = 14; //On définit un curseur x
-    while (1) /*__asm__ volatile ("hlt")*/{
-        char c = input();
-        if(c > 0){
-            char str[2] = {c, "\0" && c != '?'}; //on met l input dans un char si c différent de '?'
-            print_at(str, cursor_x++, 1, 0x02); //On affiche en vert (0x02)
-        }
-
-    
-        //if(c == '\b'){ //Si c'est la touche de suppression (backspace)
-        //    print_at(" ", cursor_x--, 1, 0x02); //On affiche un espace pour effacer le caractère de avant *2
-        //    print_at(" ", cursor_x--, 1, 0x02);
-        //}
-    }
-}
 
 //Fonction delay
 void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
@@ -92,6 +72,27 @@ void delay(int count){ //Prend count en entrée pour indiqué a peu près le tem
 void main() {
     clear(); //
     afficher_logo();
-    delay(70);
-    bureau();
+    delay(70);/* code */
+    clear();
+    print_at("sOS -- Main :", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
+    print_at("Vous tapez : ", 0, 1, 0x02); //Texte affiché en vert sur fond noir
+    
+    int cursor_x = 14; //On définit un curseur x
+    while (1) /*__asm__ volatile ("hlt")*/{
+        char c = input(); //On récupère la touche pressé dans c
+        if(c == '\b') {
+            if(cursor_x > 13) {
+                cursor_x--;
+                print_at("  ", cursor_x, 1, 0x02);
+            }
+        }
+        
+        else if(c > 0) {
+            char str[2] = {c, '\0'}; //On transforme le char en string pour pouvoir l'afficher
+            print_at(str, cursor_x++, 1, 0x02);
+        }
+        
+    }
+    
+    
 }
