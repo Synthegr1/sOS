@@ -7,7 +7,7 @@ _start:
     xor ax, ax      ; Mettre AX à 0
     mov es, ax      ; ES = 0. Donc ES:BX = 0000:7E00 = adresse 0x7E00
     mov ah, 0x02    ; Fonction BIOS "Read Sectors"
-    mov al, 2       ; Nombre de secteurs à lire (1 secteur = 512 octets, on en prend 2 de plus)
+    mov al, 10       ; Nombre de secteurs à lire (1 secteur = 512 octets, on en prend 2 de plus)
     mov ch, 0       ; Cylindre 0
     mov dh, 0       ; Tête 0
     mov cl, 2       ; Secteur de départ (le secteur 1 est le bootloader, donc on commence au 2)
