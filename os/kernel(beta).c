@@ -1,4 +1,4 @@
-    int p = 0;
+
 //Fonction pour intteroger un port processeur (port)
 static inline unsigned char inb(unsigned short port) {
     unsigned char val; //On définit val comme ce qui sera la réponse du port
