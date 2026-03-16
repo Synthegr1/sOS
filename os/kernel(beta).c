@@ -1,4 +1,3 @@
-
 //Fonction pour intteroger un port processeur (port)
 static inline unsigned char inb(unsigned short port) {
     unsigned char val; //On définit val comme ce qui sera la réponse du port
@@ -10,12 +9,17 @@ static inline unsigned char inb(unsigned short port) {
 
 //Mémoire Vidéo VGA : Il y a des positions où on peut écrire sur l'écran, chaque psoition fait
 //2 octets, 1 pour le caractère à afficher et 1 pour la couleur et le fond (ex : vert sur fond noir (sur dcp le 2e octet) = 0x02)
+//Fonction delay
+void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
+    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
+        asm volatile("nop"); //On ne fait rien
+    }
+}
 
 //Fonction équivalent printf, à executer avec comme argument l'élément a afficher, la postion x,
 //la position y et la couleur (ex : vert = 0x01)
 void print_at(const char* input, int x, int y, int color){
     volatile char* video_memory = (volatile char*)0xb8000; //On définit l'emplacement de la mémoire vidéo VGA
-
     int pos = (y * 80 + x) * 2; //Position du curseur x y ou on va écrire le texte
     for(int i = 0; input[i] != '\0'; i++){ //For pour l'écriture des différents caractères du char input un par un
         video_memory[pos] = input[i]; //on écrit le caractère sur le premier octet de l'emplacement vidéo
@@ -39,18 +43,6 @@ char input() {
     return 0; //Retour null si c pas bon
 }
 
-/*Fonction du logo*/
-void afficher_logo(void){
-    print_at("           .d88888b.    .d8888b.", 24, 8, 0x0E);
-    print_at("          d888P" "Y888b  d88P  Y88b", 24, 9, 0x0E);
-    print_at("         888     888  Y88b.", 24, 10, 0x0E);
-    print_at(".d8888b  888     888   \"Y888b.", 24, 11, 0x0E);
-    print_at("88K      888     888      \"Y88b.", 24, 12, 0x0E);
-    print_at("\"Y8888b. 888     888        \"888", 24, 13, 0x0E);
-    print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
-    print_at(" 88888P'  \"YBBBBBP\"    \"Y8888P\"", 24, 15, 0x0E);
-}
-
 /*Fonction de clear de l'écran*/
 void clear(){
     volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
@@ -60,28 +52,145 @@ void clear(){
     }
 }
 
-
-//Fonction delay
-void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
-    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
-        asm volatile("nop"); //On ne fait rien
-    }
+/*Fonction du logo*/
+void afficher_logo(void){
+    print_at("                               LL              .d88888b.    .d8888b.", 5, 8, 0x0E);
+    print_at("                               LL             d888P" "Y888b  d88P  Y88b", 5, 9, 0x0E);
+    print_at("         II                    LL            888     888  Y88b.", 5, 10, 0x0E);
+    print_at(".dSSSSb                        LL            888     888   \"Y888b.", 5, 11, 0x0E);
+    print_at("88K      II MMM.   .MMM PPPb.  LL   .dEEEb   888     888      \"Y88b.", 5, 12, 0x0E);
+    print_at("\"YSSSSb. II MM \"M..M\"MM PP \"Yb LL .EE\"  \"EE. 888     888        \"888", 5, 13, 0x0E);
+    print_at("     X88 II MM  \"MM\" MM PP .dP LL \"EE^^^^^^\" Y88b. .d88P  Y88b  d88P", 5, 14, 0x0E);
+    print_at(" SSSSSP' II MM       MM PPPP   LL   \"YEEEP\"   \"YBBBBBP\"    \"Y8888P\"", 5, 15, 0x0E);
+    print_at("                        PP", 5, 16, 0x0E);
+    print_at("                        PP", 5, 17, 0x0E);
+    print_at("                        PP", 5, 18, 0x0E);
+    delay(10);
+    clear();
+    print_at("                               LL         .d88888b.    .d8888b.", 5, 8, 0x0E);
+    print_at("                               LL        d888P" "Y888b  d88P  Y88b", 5, 9, 0x0E);
+    print_at("         II                    LL       888     888  Y88b.", 5, 10, 0x0E);
+    print_at(".dSSSSb                        LL       888     888   \"Y888b.", 5, 11, 0x0E);
+    print_at("88K      II MMM.   .MMM PPPb.  LL   .dE 888     888      \"Y88b.", 5, 12, 0x0E);
+    print_at("\"YSSSSb. II MM \"M..M\"MM PP \"Yb LL .EE\"  888     888        \"888", 5, 13, 0x0E);
+    print_at("     X88 II MM  \"MM\" MM PP .dP LL \"EE^^ Y88b. .d88P  Y88b  d88P", 5, 14, 0x0E);
+    print_at(" SSSSSP' II MM       MM PPPP   LL   \"YE  \"YBBBBBP\"    \"Y8888P\"", 5, 15, 0x0E); 
+    print_at("                        PP", 5, 16, 0x0E);
+    print_at("                        PP", 5, 17, 0x0E);
+    print_at("                        PP", 5, 18, 0x0E);
+    delay(1);
+    clear();
+    print_at("                               LL       .d88888b.    .d8888b.", 5, 8, 0x0E);
+    print_at("                               LL      d888P" "Y888b  d88P  Y88b", 5, 9, 0x0E);
+    print_at("         II                    LL     888     888  Y88b.", 5, 10, 0x0E);
+    print_at(".dSSSSb                        LL     888     888   \"Y888b.", 5, 11, 0x0E);
+    print_at("88K      II MMM.   .MMM PPPb.  LL   . 888     888      \"Y88b.", 5, 12, 0x0E);
+    print_at("\"YSSSSb. II MM \"M..M\"MM PP \"Yb LL .EE 888     888        \"888", 5, 13, 0x0E);
+    print_at("     X88 II MM  \"MM\" MM PP .dP LL \"EE Y88b. .d88P  Y88b  d88P", 5, 14, 0x0E);
+    print_at(" SSSSSP' II MM       MM PPPP   LL   \"  \"YBBBBBP\"    \"Y8888P\"", 5, 15, 0x0E); 
+    print_at("                        PP", 5, 16, 0x0E);
+    print_at("                        PP", 5, 17, 0x0E);
+    print_at("                        PP", 5, 18, 0x0E);
+    delay(1);
+    clear();
+    print_at("                             LL    .d88888b.    .d8888b.", 7, 8, 0x0E);
+    print_at("                             LL   d888P" "Y888b  d88P  Y88b", 7, 9, 0x0E);
+    print_at("        I                    LL  888     888  Y88b.", 7, 10, 0x0E);
+    print_at(".dSSSSb                      LL  888     888   \"Y888b.", 7, 11, 0x0E);
+    print_at("88K     I MMM.   .MMM PPPb.  LL  888     888      \"Y88b.", 7, 12, 0x0E);
+    print_at("\"YSSSSb.I MM \"M..M\"MM PP \"Yb LL .888     888        \"888", 7, 13, 0x0E);
+    print_at("     X88I MM  \"MM\" MM PP .dP LL \"Y88b. .d88P  Y88b  d88P", 7, 14, 0x0E);
+    print_at(" SSSSSP'I MM       MM PPPP   LL   \"YBBBBBP\"    \"Y8888P\"", 7, 15, 0x0E); 
+    print_at("                        PP", 5, 16, 0x0E);
+    print_at("                        PP", 5, 17, 0x0E);
+    print_at("                        PP", 5, 18, 0x0E);
+    delay(1);
+    clear();
+    print_at("                           LL .d88888b.    .d8888b.", 9, 8, 0x0E);
+    print_at("                           LLd888P" "Y888b  d88P  Y88b", 9, 9, 0x0E);
+    print_at("                           L888     888  Y88b.", 9, 10, 0x0E);
+    print_at(".dSSSSb                    L888     888   \"Y888b.", 9, 11,      0x0E);
+    print_at("88K     MMM.   .MMM PPPb.  L888     888      \"Y88b.", 9, 12, 0x0E);
+    print_at("\"YSSSSb.MM \"M..M\"MM PP \"Yb L888     888        \"888", 9, 13, 0x0E);
+    print_at("     X88MM  \"MM\" MM PP .dP LLY88b. .d88P  Y88b  d88P", 9, 14, 0x0E);
+    print_at(" SSSSSP'MM       MM PPPP   LL\"YBBBBBP\"    \"Y8888P\"", 9, 15, 0x0E); 
+    print_at("                        PP", 5, 16, 0x0E);
+    print_at("                        PP", 5, 17, 0x0E);
+    print_at("                        PP", 5, 18, 0x0E);
+    delay(1);
+    clear();    
+    print_at("                         .d88888b.    .d8888b.", 11, 8, 0x0E);
+    print_at("                        d888P" "Y888b  d88P  Y88b", 11, 9, 0x0E);
+    print_at("                       888     888  Y88b.", 11, 10, 0x0E);
+    print_at(".dSSSSb                888     888   \"Y888b.", 11, 11,      0x0E);
+    print_at("88K     M.   .MMM PPPb.888     888      \"Y88b.", 11, 12, 0x0E);
+    print_at("\"YSSSSb. \"M..M\"MM PP \"Y888     888        \"888", 11, 13, 0x0E);
+    print_at("     X88  \"MM\" MM PP .dPY88b. .d88P  Y88b  d88P", 11, 14, 0x0E);
+    print_at(" SSSSSP'       MM PPPP  \"YBBBBBP\"    \"Y8888P\"", 11, 15, 0x0E); 
+    print_at("                  PP", 11, 16, 0x0E);
+    print_at("                  PP", 11, 17, 0x0E);
+    print_at("                  PP", 11, 18, 0x0E);
+    delay(1);
+    clear();
+    print_at("                    .d88888b.    .d8888b.", 13, 8, 0x0E);
+    print_at("                   d888P" "Y888b  d88P  Y88b", 13, 9, 0x0E);
+    print_at("                  888     888  Y88b.", 13, 10, 0x0E);
+    print_at(".dSSSSb           888     888   \"Y888b.", 13, 11,      0x0E);
+    print_at("88K        .MMM PP888     888      \"Y88b.", 13, 12, 0x0E);
+    print_at("\"YSSSSb.M..M\"MM PY888     888        \"888", 13, 13, 0x0E);
+    print_at("     X88\"MM\" MM PPY88b. .d88P  Y88b  d88P", 13, 14, 0x0E);
+    print_at(" SSSSSP'     MM PPP\"YBBBBBP\"    \"Y8888P\"", 13, 15, 0x0E);
+    print_at("                PP", 13, 16, 0x0E);
+    print_at("                PP", 13, 17, 0x0E);
+    print_at("                PP", 13, 18, 0x0E);
+    delay(1);
+    clear();
+    print_at("             .d88888b.    .d8888b.", 14, 8, 0x0E);
+    print_at("            d888P" "Y888b  d88P  Y88b", 14, 9, 0x0E);
+    print_at("           888     888  Y88b.", 14, 10, 0x0E);
+    print_at(".dSSSSb    888     888   \"Y888b.", 14, 11,      0x0E);
+    print_at("88K       .888     888      \"Y88b.", 14, 12, 0x0E);
+    print_at("\"YSSSSb...M888     888        \"888", 14, 13, 0x0E);
+    print_at("     X88MM\"Y88b. .d88P  Y88b  d88P", 14, 14, 0x0E);
+    print_at(" SSSSSP'    \"YBBBBBP\"    \"Y8888P\"", 14, 15, 0x0E);
+    delay(1);
+    clear();
+    print_at("          .d88888b.    .d8888b.", 15, 8, 0x0E);
+    print_at("          d888P" "Y888b  d88P  Y88b", 14, 9, 0x0E);
+    print_at("         888     888  Y88b.", 14, 10, 0x0E);
+    print_at(".dSSSSb  888     888   \"Y888b.", 14, 11,      0x0E);
+    print_at("88K      888     888      \"Y88b.", 14, 12, 0x0E);
+    print_at("\"YSSSSb  888     888        \"888", 14, 13, 0x0E);
+    print_at("     X88 Y88b. .d88P  Y88b  d88P", 14, 14, 0x0E);
+    print_at(" SSSSSP'  \"YBBBBBP\"    \"Y8888P\"", 14, 15, 0x0E);
+    delay(1);
 }
+
+
+
 
 /*Fonction principale appelé par le linker.ld*/
 void main() {
-    clear(); //
-    afficher_logo();
-    delay(70);/* code */
-    clear();
-    print_at("sOS -- Main :", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
+    clear(); //On clear l'écran pour éviter les caractères bizarres
+    afficher_logo(); //On affiche le logo
+    delay(100); //On attend 2-3 secondes pour que le logo puisse être vu
+    clear(); //On clear l'écran pour éviter que le logo soit mélangé avec le texte
+    
+
+
+    print_at("sOS Main", 0, 0, 0x02); //Texte affiché en vert sur fond noir
+    
+
+
     print_at("Vous tapez : ", 0, 1, 0x02); //Texte affiché en vert sur fond noir
     
+
+
     int cursor_x = 14; //On définit un curseur x
     while (1) /*__asm__ volatile ("hlt")*/{
         char c = input(); //On récupère la touche pressé dans c
         if(c == '\b') {
-            if(cursor_x > 13) {
+            if(cursor_x > 14) { //Si le curseur est plus grand que 14 (position de départ du texte "Vous tapez : ") on peut reculer
                 cursor_x--;
                 print_at("  ", cursor_x, 1, 0x02);
             }
