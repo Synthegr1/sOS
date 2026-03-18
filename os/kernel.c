@@ -1,5 +1,8 @@
-int p = 0;
 int posdeb = 1;
+char text[100]; //On définit le char pour stocker TOUTE la commande
+int pos = 0; //Le curseur pour voyager dans text
+int cursor_x = 10; //On définit un curseur x
+
 
 //Fonction pour intteroger un port processeur (port)
 
@@ -31,7 +34,14 @@ void print_at(const char* input, int x, int y, int color){
         pos += 2; //On rajoute 2 au curseur pour le caractère suivant (caractère + mise en forme)
     }
 }
-
+/*Fonction de clear de l'écran*/
+void clear(){
+    volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
+    for (int i = 0; i < 80 * 25 * 2; i += 2) { //For pour passer par tous les emplacements VGA de l'écran
+        video_memory[i] = ' '; //On remplace par du vide
+        video_memory[i+1] = 0x0F;//Blanc sur fond noir
+    }
+}
 //______INPUT_______
 //Pour communiquer avec le clavier, il y a 2 ports : 0x64, qui permet de savoir si une touche 
 //est pressé et 0x60 qui donne le code de la touche.
@@ -49,7 +59,12 @@ char input() {
     }
     return 0; //Retour null si c pas bon
 }
-
+//Fonction delay
+void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
+    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
+        asm volatile("nop"); //On ne fait rien
+    }
+}
 void afficher_logo(void){
     print_at("                               LL              .d88888b.    .d8888b.", 5, 8, 0x0E);
     print_at("                               LL             d888P" "Y888b  d88P  Y88b", 5, 9, 0x0E);
@@ -182,15 +197,14 @@ void afficher_logo(void){
     print_at(" SSSSSP'  \"YBBBBBP\"    \"Y8888P\"", 24, 15, 0x0E);
     delay(5);
 }
-
-/*Fonction de clear de l'écran*/
-void clear(){
-    volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
-    for (int i = 0; i < 80 * 25 * 2; i += 2) { //For pour passer par tous les emplacements VGA de l'écran
-        video_memory[i] = ' '; //On remplace par du vide
-        video_memory[i+1] = 0x0F;//Blanc sur fond noir
-    }
+int bureau(){
+    posdeb = -1;
+    print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
+    char text[100]; //On définit le char pour stocker TOUTE la commande
+    int pos = 0; //Le curseur pour voyager dans text
+    int cursor_x = 10; //On définit un curseur x 
 }
+
 int compchar(char a[100], char b[100]){
     int curs = 0;
     while(a[curs] != '\0' && b[curs] != '\0'){
@@ -202,12 +216,7 @@ int compchar(char a[100], char b[100]){
     return 1;
 }
 
-//Fonction delay
-void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
-    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
-        asm volatile("nop"); //On ne fait rien
-    }
-}
+
 
 void run(char thinks[100]) {
     //print_at(thinks, 0, posdeb + 1, 0x04);
@@ -215,7 +224,10 @@ void run(char thinks[100]) {
         print_at("world", 0, posdeb + 1, 0x01);
     } else if (compchar(thinks, "shutdown") == 1){
         outw(0x604, 0x2000);
-    } 
+    } else if ( compchar(thinks, "clear") == 1){
+        clear();
+        bureau();
+    }
     else {
         print_at("Invalid command", 0, posdeb + 1, 0x04);
     }
@@ -223,44 +235,43 @@ void run(char thinks[100]) {
 
 /*Fonction principale appelé par le linker.ld*/
 void main() {
-
     clear(); //
     afficher_logo();
     delay(70);/* code */
     clear();
     print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
     print_at("sOS-bash$ ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
-    
     char text[100]; //On définit le char pour stocker TOUTE la commande
     int pos = 0; //Le curseur pour voyager dans text
     int cursor_x = 10; //On définit un curseur x
-        while (1) {
-            char c = input(); //On récupère la touche pressé dans c
-            if (c == 0) { // Si c = 0 (un relachement de touche (voir ____input___))
-                //On ne fait rien
-            } else if (c == '\n'){ //Si c == a la touche entré (0xC1)
-                run(text); //On run la commande (text[100])
-                posdeb += 2;
-                print_at("sOS-bash$ ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
-                cursor_x = 10;
-                //char space[1] = "";
-                for(int g = 0; g < 100; g++){
-                    text[g] = '\0';
-                    pos = 0;
-                }
-            } else if(c == '\b') { //Si c == \b (backspace)
-                if(cursor_x > 9) {
-                    cursor_x--;
-                    print_at("  ", cursor_x, 1, 0x01);
-                }
-            } else if(c > 0) {             
-                text[pos++] = c; //On écrit dans un char l'intégralité de la commande
-                text[pos] = '\0'; //Rajouter \0 a tt les caractères
-                char str[2] = {c, '\0'}; //On transforme le char en string pour pouvoir l'afficher
-                print_at(str, cursor_x++, posdeb, 0x07); //Afficher le caractère
+
+    while(1) { //Boucle infini pour le bureau   
+        char c = input(); //On récupère la touche pressé dans c
+        if (c == 0) { // Si c = 0 (un relachement de touche (voir ____input___))
+            //On ne fait rien
+        } else if (c == '\n'){ //Si c == a la touche entré (0xC1)
+            run(text); //On run la commande (text[100])
+            posdeb += 2;
+            print_at("sOS-bash$ ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
+            cursor_x = 10;
+            //char space[1] = "";
+            for(int g = 0; g < 100; g++){
+                text[g] = '\0';
+                pos = 0;
             }
-            //asm volatile("pause");
+        } else if(c == '\b') { //Si c == \b (backspace)
+            if(cursor_x > 9) {
+                cursor_x--;
+                print_at("  ", cursor_x, 1, 0x01);
+            }
+        } else if(c > 0) {             
+            text[pos++] = c; //On écrit dans un char l'intégralité de la commande
+            text[pos] = '\0'; //Rajouter \0 a tt les caractères
+            char str[2] = {c, '\0'}; //On transforme le char en string pour pouvoir l'afficher
+            print_at(str, cursor_x++, posdeb, 0x07); //Afficher le caractère
         }
+        //asm volatile("pause");
+    }
     
     
 }
