@@ -191,21 +191,15 @@ void clear(){
         video_memory[i+1] = 0x0F;//Blanc sur fond noir
     }
 }
-
-typedef enum {
-    false = 0,
-    true = 1
-} bool;
-
-bool compchar(char a[100], char b[100]){
+int compchar(char a[100], char b[100]){
     int curs = 0;
     while(a[curs] != '\0' && b[curs] != '\0'){
         if(a[curs] != b[curs]){
-            return false;
+            return 0;
         }
         curs++;
     }
-    return a[curs] == b[curs];
+    return 1;
 }
 
 //Fonction delay
@@ -217,9 +211,9 @@ void delay(int count){ //Prend count en entrée pour indiqué a peu près le tem
 
 void run(char thinks[100]) {
     //print_at(thinks, 0, posdeb + 1, 0x04);
-    if(compchar(thinks, "hello")){
+    if(compchar(thinks, "hello") == 1){
         print_at("world", 0, posdeb + 1, 0x01);
-    } else if (compchar(thinks, "shutdown")){
+    } else if (compchar(thinks, "shutdown") == 1){
         outw(0x604, 0x2000);
     } 
     else {
