@@ -260,9 +260,9 @@ void main() {
                 pos = 0;
             }
         } else if(c == '\b') { //Si c == \b (backspace)
-            if(cursor_x > 9) {
+            if(cursor_x > 10) {
                 cursor_x--;
-                print_at("  ", cursor_x, 1, 0x01);
+                print_at("  ", cursor_x, posdeb, 0x01);
             }
         } else if(c > 0) {             
             text[pos++] = c; //On écrit dans un char l'intégralité de la commande
