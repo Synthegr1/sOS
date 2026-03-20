@@ -263,6 +263,7 @@ void main() {
             if(cursor_x > 10) {
                 cursor_x--;
                 print_at("  ", cursor_x, posdeb, 0x01);
+                text[pos--] = ' ';
             }
         } else if(c > 0) {             
             text[pos++] = c; //On écrit dans un char l'intégralité de la commande
