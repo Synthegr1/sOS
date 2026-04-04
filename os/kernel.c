@@ -1,8 +1,7 @@
-int posdeb = 1;
+int posdeb = 1; //Curseur vertical
 char text[100]; //On définit le char pour stocker TOUTE la commande
 int pos = 0; //Le curseur pour voyager dans text
 int cursor_x = 10; //On définit un curseur x
-
 
 //Fonction pour intteroger un port processeur (port)
 
@@ -53,6 +52,7 @@ char input() {
     scancode = inb(0x60); //On récupère le scancode dans le port 0x60
     if (scancode & 0x80) return 0; //Sile scancode est > 128 c'est un relachement de touches
     if(scancode == 0x1C) return '\n';
+    if(scancode == 0x39) return 3;
     unsigned char map[] = "??1234567890??\b?azertyuiop??\n?qsdfghjklm????wxcvbn,?;? "; //Map des touches (à comparé avec le 0x60)
     if (scancode < sizeof(map)) { //Si le scancode fait partis de la map
         return map[scancode]; //On retourne la touche pressé
@@ -216,7 +216,24 @@ int compchar(char a[100], char b[100]){
     return 1;
 }
 
+int startsWith(char a[100], char b[100]){
+    int curs = 0;
+    int firtchars = 0;
 
+    while(a[curs] != '\0' && b[curs] != '\0'){
+        if(a[curs] != b[curs]){
+            if(firtchars >= 4){
+                return 1;
+            } else {
+                return 0;
+            }
+        } else {
+            firtchars += 1;
+        }
+        curs++;
+    }
+    return 1;
+}
 
 void run(char thinks[100]) {
     //print_at(thinks, 0, posdeb + 1, 0x04);
@@ -227,7 +244,13 @@ void run(char thinks[100]) {
     } else if ( compchar(thinks, "clear") == 1){
         clear();
         bureau();
-    }
+    } else if(startsWith(thinks, "noemie") == 1){
+        print_at("Noemie est la plus belle fille que j'ai rencontre sur terre,", 0, posdeb + 1, 0x05);
+        posdeb += 1;
+        print_at("elle est le soleil de ma vie ! <3", 0, posdeb + 1, 0x05);
+    } else if(startsWith(thinks, "echo")){
+
+    } 
     else {
         print_at("Invalid command", 0, posdeb + 1, 0x04);
     }
@@ -265,7 +288,12 @@ void main() {
                 print_at("  ", cursor_x, posdeb, 0x01);
                 text[pos--] = ' ';
             }
-        } else if(c > 0) {             
+        } else if(c == 3){
+            print_at(" ", cursor_x++, posdeb, 0x07);
+            text[pos++] = c;
+            text[pos] = '\0';
+        } 
+        else if(c > 0) {             
             text[pos++] = c; //On écrit dans un char l'intégralité de la commande
             text[pos] = '\0'; //Rajouter \0 a tt les caractères
             char str[2] = {c, '\0'}; //On transforme le char en string pour pouvoir l'afficher
