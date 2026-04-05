@@ -13,7 +13,7 @@ SECTIONS
 
     /* Secteur 2 : kernel */
     . = ALIGN(512); 
-    
+
     .kernel : AT(ADDR(.kernel)) {
         *(.text)
         *(.rodata)
