@@ -252,10 +252,6 @@ void run(char thinks[100]) {
     } else if ( compchar(thinks, "clear") == 1){
         clear();
         bureau();
-    } else if(startsWith(thinks, "noemie") == 1){
-        print_at("Noemie est la plus belle fille que j'ai rencontre sur terre,", 0, posdeb + 1, 0x05);
-        posdeb += 1;
-        print_at("elle est le soleil de ma vie ! <3", 0, posdeb + 1, 0x05);
     } else if(startsWith(thinks, "echo")){
         int taillechar = sizeOf(thinks);
         int y = 5;
