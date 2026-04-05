@@ -235,6 +235,14 @@ int startsWith(char a[100], char b[100]){
     return 1;
 }
 
+int sizeOf(char input[100]){
+    int i = 0;
+    while(input[i] != '\0'){
+        i++;
+    }
+    return i;
+}
+
 void run(char thinks[100]) {
     //print_at(thinks, 0, posdeb + 1, 0x04);
     if(compchar(thinks, "hello") == 1){
@@ -249,7 +257,17 @@ void run(char thinks[100]) {
         posdeb += 1;
         print_at("elle est le soleil de ma vie ! <3", 0, posdeb + 1, 0x05);
     } else if(startsWith(thinks, "echo")){
-
+        int taillechar = sizeOf(thinks);
+        int y = 5;
+        int j = 0;
+        if(taillechar > y){
+            char buffer[100];
+            for(int i = y; i < taillechar; i++){
+                buffer[j++] = thinks[i];
+            }
+            buffer[j] = '\0';
+            print_at(buffer, 0, posdeb + 1, 0x09);
+        }
     } 
     else {
         print_at("Invalid command", 0, posdeb + 1, 0x04);
@@ -274,6 +292,7 @@ void main() {
             //On ne fait rien
         } else if (c == '\n'){ //Si c == a la touche entré (0xC1)
             run(text); //On run la commande (text[100])
+            print_at(" ", cursor_x, posdeb, 0x01);
             posdeb += 2;
             print_at("sOS-bash$ ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
             cursor_x = 10;
@@ -287,17 +306,23 @@ void main() {
                 cursor_x--;
                 print_at("  ", cursor_x, posdeb, 0x01);
                 text[pos--] = ' ';
+                print_at("_", cursor_x++, posdeb, 0x80);
+                cursor_x -= 1;
             }
         } else if(c == 3){
             print_at(" ", cursor_x++, posdeb, 0x07);
             text[pos++] = c;
             text[pos] = '\0';
+            print_at("_", cursor_x++, posdeb, 0x80);
+            cursor_x -= 1;
         } 
         else if(c > 0) {             
             text[pos++] = c; //On écrit dans un char l'intégralité de la commande
             text[pos] = '\0'; //Rajouter \0 a tt les caractères
             char str[2] = {c, '\0'}; //On transforme le char en string pour pouvoir l'afficher
             print_at(str, cursor_x++, posdeb, 0x07); //Afficher le caractère
+            print_at("_", cursor_x++, posdeb, 0x80);
+            cursor_x -= 1;
         }
         //asm volatile("pause");
     }
