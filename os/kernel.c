@@ -1,7 +1,13 @@
+#include "shell.h"
+#include "util.h"
+#include "math.h"
+#include "kernel.h"
+
 int posdeb = 1; //Curseur vertical
 char text[100]; //On définit le char pour stocker TOUTE la commande
 int pos = 0; //Le curseur pour voyager dans text
 int cursor_x = 10; //On définit un curseur x
+int echocolor = 0x09;
 
 //Fonction pour intteroger un port processeur (port)
 
@@ -12,10 +18,6 @@ static inline unsigned char inb(unsigned short port) {
     return val; //On retourne 'asm'
 }
 
-static inline void outw(unsigned short port, unsigned short val) {
-    __asm__ volatile ("outw %0, %1" : : "a"(val), "Nd"(port));
-}
-
 //'asm' ajit comme si on disait au C : "Tu sais pas faire ça, on s'en fiche, demande le au processeur tkt !"
 
 //Mémoire Vidéo VGA : Il y a des positions où on peut écrire sur l'écran, chaque psoition fait
@@ -23,7 +25,7 @@ static inline void outw(unsigned short port, unsigned short val) {
 
 //Fonction équivalent printf, à executer avec comme argument l'élément a afficher, la postion x,
 //la position y et la couleur (ex : vert = 0x01)
-void print_at(const char* input, int x, int y, int color){
+int print_at(const char* input, int x, int y, int color){
     volatile char* video_memory = (volatile char*)0xb8000; //On définit l'emplacement de la mémoire vidéo VGA
 
     int pos = (y * 80 + x) * 2; //Position du curseur x y ou on va écrire le texte
@@ -65,6 +67,7 @@ void delay(int count){ //Prend count en entrée pour indiqué a peu près le tem
         asm volatile("nop"); //On ne fait rien
     }
 }
+//Fonction animation du logo
 void afficher_logo(void){
     print_at("                               LL              .d88888b.    .d8888b.", 5, 8, 0x0E);
     print_at("                               LL             d888P" "Y888b  d88P  Y88b", 5, 9, 0x0E);
@@ -197,77 +200,13 @@ void afficher_logo(void){
     print_at(" SSSSSP'  \"YBBBBBP\"    \"Y8888P\"", 24, 15, 0x0E);
     delay(5);
 }
-int bureau(){
+//Fonction affichage du bureau
+void bureau(){
     posdeb = -1;
     print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
     char text[100]; //On définit le char pour stocker TOUTE la commande
     int pos = 0; //Le curseur pour voyager dans text
     int cursor_x = 10; //On définit un curseur x 
-}
-
-int compchar(char a[100], char b[100]){
-    int curs = 0;
-    while(a[curs] != '\0' && b[curs] != '\0'){
-        if(a[curs] != b[curs]){
-            return 0;
-        }
-        curs++;
-    }
-    return 1;
-}
-
-int startsWith(char a[100], char b[100]){
-    int curs = 0;
-    int firtchars = 0;
-
-    while(a[curs] != '\0' && b[curs] != '\0'){
-        if(a[curs] != b[curs]){
-            if(firtchars >= 4){
-                return 1;
-            } else {
-                return 0;
-            }
-        } else {
-            firtchars += 1;
-        }
-        curs++;
-    }
-    return 1;
-}
-
-int sizeOf(char input[100]){
-    int i = 0;
-    while(input[i] != '\0'){
-        i++;
-    }
-    return i;
-}
-
-void run(char thinks[100]) {
-    //print_at(thinks, 0, posdeb + 1, 0x04);
-    if(compchar(thinks, "hello") == 1){
-        print_at("world", 0, posdeb + 1, 0x01);
-    } else if (compchar(thinks, "shutdown") == 1){
-        outw(0x604, 0x2000);
-    } else if ( compchar(thinks, "clear") == 1){
-        clear();
-        bureau();
-    } else if(startsWith(thinks, "echo")){
-        int taillechar = sizeOf(thinks);
-        int y = 5;
-        int j = 0;
-        if(taillechar > y){
-            char buffer[100];
-            for(int i = y; i < taillechar; i++){
-                buffer[j++] = thinks[i];
-            }
-            buffer[j] = '\0';
-            print_at(buffer, 0, posdeb + 1, 0x09);
-        }
-    } 
-    else {
-        print_at("Invalid command", 0, posdeb + 1, 0x04);
-    }
 }
 
 /*Fonction principale appelé par le linker.ld*/
@@ -277,10 +216,11 @@ void main() {
     delay(70);/* code */
     clear();
     print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
-    print_at("sOS-bash$ ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
+    print_at("sOS::kernel# ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
     char text[100]; //On définit le char pour stocker TOUTE la commande
     int pos = 0; //Le curseur pour voyager dans text
-    int cursor_x = 10; //On définit un curseur x
+    int cursor_x = 13; //On définit un curseur x
+    int deb = 13;
 
     while(1) { //Boucle infini pour le bureau   
         char c = input(); //On récupère la touche pressé dans c
@@ -290,15 +230,15 @@ void main() {
             run(text); //On run la commande (text[100])
             print_at(" ", cursor_x, posdeb, 0x01);
             posdeb += 2;
-            print_at("sOS-bash$ ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
-            cursor_x = 10;
+            print_at("sOS::kernel# ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
+            cursor_x = deb;
             //char space[1] = "";
             for(int g = 0; g < 100; g++){
                 text[g] = '\0';
                 pos = 0;
             }
         } else if(c == '\b') { //Si c == \b (backspace)
-            if(cursor_x > 10) {
+            if(cursor_x > deb) {
                 cursor_x--;
                 print_at("  ", cursor_x, posdeb, 0x01);
                 text[pos--] = ' ';
@@ -322,6 +262,4 @@ void main() {
         }
         //asm volatile("pause");
     }
-    
-    
 }

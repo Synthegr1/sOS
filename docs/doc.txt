@@ -1,0 +1,25 @@
+Doc d’execution et d’explication :
+	boot.asm est le fichier assembleur « normal »
+	boot.bin est le boot.asm mais en binaire
+	boot est issus de l’execution avec Qemu
+
+Execution :
+	Linux (Ubuntu) :
+		/!\ il faut que toutes les commandes suivantes soit executer dans le même répertoires où sont les fichiers !
+			cd chemin_vers_le_DOSSIER
+		- Installer NASM
+			sudo apt-get install nasm
+		- Installer Qemu
+			sudo apt-get install qemu-system
+		
+		//Etant donné que tt a déjà été compilez avant sur le dropbox, la commande de compil n est pas nécéssaire mais l execution oui. 
+		//Pour l execution, remplacer le nom du fichier par boot.bin (qemu-system-i386 boot.bin)
+
+		- Compiler l'assembleur avec NASM 
+			nasm -f bin [nom_du_fichier].asm -e [nom_du_fichier_de_sortie_bianire_a_choisir].o
+		- Executer avec Qemu :
+			qemu-system-i386 [nom_du_fichier].bin
+		Et c'est bon !  
+
+	Windows (11) :
+		
