@@ -1,33 +1,30 @@
-ENTRY(_start)
-SECTIONS
-{
-    /* Secteur 1 : bootloader */
-    . = 0x7C00;
-    .boot : { 
-        boot.o(.text) 
+ENTRY(_start) /* global _start dans le boot.asm, fonction d'amorcage */
+SECTIONS {
+    
+    . = 0x7C00; /* Adresse du boot sector */
+
+    .boot : { /* SECTION 'boot' */
+        *(.boot_text) /* Toutes les sections .boot_text seront chargé ici */
     }
 
-    /* Signature boot */
-    . = 0x7C00 + 510;
-    .sig : { SHORT(0xAA55); }
+    . = 0x7C00 + 510; /* Déplacement de la signature boot de 0x7C00 à 0x7DFE */
+    .sig : { SHORT(0xAA55); } /* Signature BIOS */
 
-    /* Secteur 2 : kernel */
-    . = ALIGN(512); 
-
+    . = ALIGN(512); /* Passer l'adresse mémoire au prochain multiple de 512 pour les kernel */
+    
     .kernel : AT(ADDR(.kernel)) {
-        *(.text)
-        *(.rodata)
-        *(.data)
-        *(.bss)
+        *(.text) /* Code machine */
+        *(.rodata) /* Données constantes */
+        *(.data) /* Variables initialisés (int x = 0;)*/
+        *(.bss) /* Variables non initialisés (int x;) */
     }
 
-    /* Align fin */
-    . = ALIGN(512);
+    . = ALIGN(512); /* Force la taille finale à être un multiple de 512 */
 
     /* FIX CRITIQUE */
-    /DISCARD/ :
+    /DISCARD/ : /* Suppression des sections .eh_frame et .comment des fichiers .o */
     {
-        *(.eh_frame)
+        *(.eh_frame) 
         *(.comment)
     }
 }
