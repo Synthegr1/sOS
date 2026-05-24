@@ -1,6 +1,7 @@
 #include "shell.h"
 #include "util.h"
 #include "kernel.h"
+#include "../rust/rust_maths.h"
 
 void help(int posdeb) {
     posdeb += 1;
@@ -304,64 +305,60 @@ int operate(char *input){
 
 }
 
+char g[20];
+
 // --- Opérations avec des décimaux --- //
 double dec_operate(char *input) {
-    int charsize = sizeOf(input);
-    int y = 5;
-    int cursor = 0;
-    if(charsize > y){
-        for(int i = y; i < charsize; i++){
-            buffer1[cursor] = input[i];
-            cursor += 1;
-        }
-        buffer1[cursor] = '\0';
-
-        cursor = 0;
-        int charsize2 = sizeOf(buffer1);
-        int j = 4;
-        if(charsize2 > j){
-            for(int i = j; i < charsize2; i++){
-                buffer2[cursor] = buffer1[i];
-                cursor += 1;
-            }
-
-            cursor = 0;
-            int charsize3 = sizeOf(buffer2);
-            int p = 4;
-            if(charsize3 > p){
-                for(int i = p; i < charsize3; i++){
-                    buffer3[cursor] = buffer2[i];
-                    cursor += 1;
-                }
-
-                extract_2_values(buffer3);
-
-                int k = convertCharToInt(proprechar1);
-                int l = convertCharToInt(proprechar2);
-
-                if (startsWith(buffer2, "div")) {
-                    double result = (double)k / (double)l;
-                    return result;
-                }
-                else if( startsWith(buffer2, "mul")) {
-
-                }
-                else if (startsWith(buffer2, "add")) {
-
-                }
-                else if( startsWith(buffer2, "log")) {
-
-                }
-                else if( startsWith(buffer2, "ln")) {
-
-                }
-            }
-
-            clearBuffer(buffer1);
-            clearBuffer(buffer2);
-            clearBuffer(buffer3);
-        }
+    // input = "dec div 5 u 2"
+    // on skip "dec " (4 chars) → "div 5 u 2"
+    
+    char op[10];      // contiendra "div"
+    char val1[10];    // contiendra "5"
+    char val2[10];    // contiendra "2"
+    
+    clearBuffer(op);
+    clearBuffer(val1);
+    clearBuffer(val2);
+    
+    int i = 4;  // skip "dec "
+    int c = 0;
+    
+    // extraire l'opération
+    while(input[i] != ' ' && input[i] != '\0'){
+        op[c++] = input[i++];
     }
+    op[c] = '\0';
+    i++;  // skip l'espace
+    
+    // extraire val1
+    c = 0;
+    while(input[i] != 'u' && input[i] != '\0'){
+        if(input[i] != ' ') val1[c++] = input[i];
+        i++;
+    }
+    val1[c] = '\0';
+    i++;  // skip 'u'
+    
+    // extraire val2
+    c = 0;
+    while(input[i] != '\0'){
+        if(input[i] != ' ') val2[c++] = input[i];
+        i++;
+    }
+    val2[c] = '\0';
+
+    int k = convertCharToInt(val1);
+    int l = convertCharToInt(val2);
+    
+    if(startsWith(op, "div")){
+        return (double)k / (double)l;
+    } else if(startsWith(op, "mul")){
+        return (double)k * (double)l;
+    } else if(startsWith(op, "add")){
+        return (double)(k + l);
+    }
+    
+    return 0;
 }
 
     //Fonction shell
@@ -436,20 +433,21 @@ double dec_operate(char *input) {
         }
         else if(startsWith(thinks, "maths ")) {
             char s[10];
-            /*if (startsWith(thinks, "maths dec")) {
-                double r = dec_operate(thinks);
-                convertDecimalToChar(r, s);
-                print_at(s, posdeb + 1, posdeb + 5, posdeb + 6);
-            }else {*/
-                int y = operate(thinks);
-                convertIntTOChar(y, s);
-                print_at(s, 0, posdeb + 1, 0x04);
-        //}
+            int y = operate(thinks);
+            convertIntTOChar(y, s);
+            print_at(s, 0, posdeb + 1, 0x04);
         }
+        else if(startsWith(thinks, "dec")) {
+            char s[10];
+            double r = dec_operate(thinks);
+            convertDecimalToChar(r, s);
+            print_at(s, 0, posdeb + 1, posdeb + 6);
+        }
+
         else if (compchar(thinks, "test")) {
             char v[10];
-            convertDecimalToChar(78.65, v);
-            print_at(v, 0, posdeb + 1, 0x09);
+            convertIntTOChar(rust_add(78, 789), v);
+            print_at(v, 0, posdeb + 1, 0x0A);
         }
         else {
             print_at("Invalid command", 0, posdeb + 1, 0x04);
