@@ -54,7 +54,7 @@ char input() {
     scancode = inb(0x60); //On récupère le scancode dans le port 0x60
     if (scancode & 0x80) return 0; //Sile scancode est > 128 c'est un relachement de touches
     if(scancode == 0x1C) return '\n';
-    if(scancode == 0x39) return 3;
+    if(scancode == 0x39) return ' ';
     unsigned char map[] = "??1234567890??\b?azertyuiop??\n?qsdfghjklm????wxcvbn,?;? "; //Map des touches (à comparé avec le 0x60)
     if (scancode < sizeof(map)) { //Si le scancode fait partis de la map
         return map[scancode]; //On retourne la touche pressé
