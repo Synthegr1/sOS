@@ -75,22 +75,34 @@ char before[10];
 char after[10];
 
 void convertDecimalToChar(double number, char *str) {
-    int q = (int) number;
-    convertIntTOChar(q, str);
-    str[get_number_size(q)] = ',';
-    int u = get_number_size(q) + 1;
-    double m = number - q;
-    while (m < 1) {
-        m *= 10;
+    int f = (int)number;   
+    double aft = number - f;
+    int x = 0;
+    int o = 0;
+    char be[10];
+    char af[10];
+    char to[10];
+
+    convertIntTOChar(f, be);
+    convertIntTOChar((int)aft * 10000, af);
+    
+    while(be[x] != '\0'){
+        to[x] = be[x];
+        x += 1;
     }
-    int o = (int) m;
-    char txt[10];
-    convertIntTOChar(o, txt);
-    int y = 0;
-    for (int i = u; i < sizeOf(str) + sizeOf(txt); i++) {
-        str[i] = txt[y];
-        y += 1;
+
+    to[x] = '\0';
+    x += 1;
+
+    while(af[o] != '\0'){
+        to[x] = af[o];
+        x += 1;
+        o += 1;
     }
+
+    to[x] = '\0';
+    str = to;
+
 }
 
 double convertCharToDecimal(char *t) {
