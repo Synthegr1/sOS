@@ -101,8 +101,12 @@ void convertDecimalToChar(double number, char *str) {
     }
 
     to[x] = '\0';
-    str = to;
-
+    int i = 0;
+    while (to[i] != '\0') {
+        str[i] = to[i];
+        i++;
+    }
+    str[i] = '\0';
 }
 
 double convertCharToDecimal(char *t) {
@@ -198,58 +202,29 @@ int get_decimal(int m, int n) {
 
 //Fonction convert Int to Char
 void convertIntTOChar(int u, char *str){
-
-    int size = get_number_size(u);
-
-    int numbers[size];
-
-    int t = 0;
-
-    for (int f = 0; f < size; f++) {
-        numbers[f] = get_digit(f + 1, u);
+        // Gestion du cas 0
+    if (u == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return;
     }
-
-    for(int cursor = 0; cursor < size; cursor ++){
-        t = numbers[cursor];
-
-        switch (t){
-            case 0:
-                str[cursor] = '0';
-                break;
-            case 1:
-                str[cursor] = '1';
-                break;
-            case 2:
-                str[cursor] = '2';
-                break;
-            case 3:
-                str[cursor] = '3';
-                break;
-            case 4:
-                str[cursor] = '4';
-                break;
-            case 5:
-                str[cursor] = '5';
-                break;
-            case 6:
-                str[cursor] = '6';
-                break;
-            case 7:
-                str[cursor] = '7';
-                break;
-            case 8:
-                str[cursor] = '8';
-                break;
-            case 9:
-                str[cursor] = '9';
-                break;
-            default:
-                str[cursor] = 'x';
-                break;
-            }
-
+    
+    int n = 0;          // n doit être local, pas global
+    int temp = u;
+    
+    // Compte le nombre de chiffres
+    while(temp >= 10){
+        temp /= 10;
+        n++;
     }
-    str[size] = '\0';
+    
+    // Extraction des chiffres de droite à gauche
+    for(int i = n; i >= 0; i--){
+        str[i] = '0' + (u % 10);  // dernier chiffre
+        u /= 10;                   // on enlève le dernier chiffre
+    }
+    
+    str[n + 1] = '\0';  // terminateur de chaîne
 }
 
 //Fonction de comparation de 2 char char1 = char2 ?

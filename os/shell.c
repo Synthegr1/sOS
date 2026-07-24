@@ -2,6 +2,9 @@
 #include "util.h"
 #include "kernel.h"
 #include "../rust/rust_maths.h"
+#include "time_driver.h"
+
+int color_temp = 0x01;
 
 void help(int posdeb) {
     posdeb += 1;
@@ -109,62 +112,77 @@ int colorselect(char *thinks){
 
             if (compchar(buffer, "black")){
                 echocolor = 0x00;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "white")){
                 echocolor = 0xF;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "blue1")){
                 echocolor = 0x01;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "green1")){
                 echocolor = 0x02;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "cyan1")){
                 echocolor = 0x03;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "red1")){
                 echocolor = 0x04;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "magenta1")){
                 echocolor = 0x05;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "marron")){
                 echocolor = 0x06;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "grey1")){
                 echocolor = 0x07;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "grey2")){
                 echocolor = 0x08;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "blue2")){
                 echocolor = 0x09;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "green2")){
                 echocolor = 0x0A;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "cyan2")){
                 echocolor = 0x0B;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "red2")){
                 echocolor = 0x0C;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "magenta2")){
                 echocolor = 0x0D;
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
                 return echocolor;
             }
             else if(compchar(buffer, "yellow")){
@@ -174,7 +192,68 @@ int colorselect(char *thinks){
                 return 2;
             } else if(compchar(buffer, "help")){
                 return 3;
-            } else {
+            } else if(startsWith(buffer, "clock")){
+                char a[10];
+                int y2 = 12;
+                int a2 = 0;
+                for(int i = y2; i < taillechar; i++){
+                    a[a2] = thinks[i];
+                    a2 += 1;
+                }
+                a[a2 + 1] = '\0';
+                char b2[10];
+                if (compchar(a, "black")){
+                    color_temp = 0x00;
+                }
+                else if (compchar(a, "white")){
+                    color_temp = 0x0F;
+                }
+                else if (compchar(a, "blue1")){
+                    color_temp = 0x01;
+                }
+                else if (compchar(a, "green1")){
+                    color_temp = 0x02;
+                }
+                else if (compchar(a, "cyan1")){
+                    color_temp = 0x03;
+                }
+                else if (compchar(a, "red1")){
+                    color_temp = 0x04;
+                }
+                else if (compchar(a, "magenta1")){
+                    color_temp = 0x05;
+                }
+                else if (compchar(a, "marron")){
+                    color_temp = 0x06;
+                }
+                else if (compchar(a, "grey1")){
+                    color_temp = 0x07;
+                }
+                else if (compchar(a, "grey2")){
+                    color_temp = 0x08;
+                }
+                else if (compchar(a, "blue2")){
+                    color_temp = 0x09;
+                }
+                else if (compchar(a, "green2")){
+                    color_temp = 0x0A;
+                }
+                else if (compchar(a, "cyan2")){
+                    color_temp = 0x0B;
+                }
+                else if (compchar(a, "red2")){
+                    color_temp = 0x0C;
+                }
+                else if (compchar(a, "magenta2")){
+                    color_temp = 0x0D;
+                }
+                else if (compchar(a, "yellow")){
+                    color_temp = 0x0E;
+                }
+                print_at("Clock Color set !", 0, posdeb + 1, 0x0A);
+                return 5;
+            } 
+            else {
                 return 404;
             }
         }
@@ -422,7 +501,10 @@ double dec_operate(char *input) {
                 posdeb += 2;
             } else if(colorselect(thinks) == 404) {
                 print_at("Error : invalid color !", 0, posdeb + 1, 0x04);
-            } else {
+            } else if(colorselect(thinks) == 5){
+                color_af_hour = color_temp;
+            } 
+            else {
                 echocolor = colorselect(thinks);
             }
 
@@ -443,14 +525,15 @@ double dec_operate(char *input) {
             convertDecimalToChar(r, s);
             print_at(s, 0, posdeb + 1, posdeb + 6);
         }
-
-        else if (compchar(thinks, "test")) {
+        else if(compchar(thinks, "hour")){
+            hour_fn();
+        }
+        /*else if (compchar(thinks, "test")) {
             char v[10];
             convertIntTOChar(rust_add(78, 789), v);
             print_at(v, 0, posdeb + 1, 0x0A);
-        }
+        }*/
         else {
             print_at("Invalid command", 0, posdeb + 1, 0x04);
         }
     }
-
