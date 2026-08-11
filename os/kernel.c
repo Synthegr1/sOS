@@ -1,8 +1,5 @@
 #include "shell.h"
-#include "util.h"
-#include "math.h"
 #include "kernel.h"
-#include "time_driver.h"
 
 int posdeb = 1; //Curseur vertical
 char text[100]; //On définit le char pour stocker TOUTE la commande
@@ -10,8 +7,14 @@ int pos = 0; //Le curseur pour voyager dans text
 int cursor_x = 10; //On définit un curseur x
 int echocolor = 0x09;
 
-int is_anim = 0;
-int fg = 4;
+//Fonction pour intteroger un port processeur (port)
+
+//unsigned char = 8 bits & unsigned short = 16 bits
+static inline unsigned char inb(unsigned short port) {
+    unsigned char val; //On définit val comme ce qui sera la réponse du port
+    asm volatile ("inb %1, %0" : "=a"(val) : "Nd"(port)); //On demande au processeur avec 'asm'
+    return val; //On retourne 'asm'
+}
 
 //'asm' ajit comme si on disait au C : "Tu sais pas faire ça, on s'en fiche, demande le au processeur tkt !"
 
@@ -20,7 +23,7 @@ int fg = 4;
 
 //Fonction équivalent printf, à executer avec comme argument l'élément a afficher, la postion x,
 //la position y et la couleur (ex : vert = 0x01)
-int print_at(const char* input, int x, int y, int color){
+void print_at(const char* input, int x, int y, int color){
     volatile char* video_memory = (volatile char*)0xb8000; //On définit l'emplacement de la mémoire vidéo VGA
 
     int pos = (y * 80 + x) * 2; //Position du curseur x y ou on va écrire le texte
@@ -30,6 +33,7 @@ int print_at(const char* input, int x, int y, int color){
         pos += 2; //On rajoute 2 au curseur pour le caractère suivant (caractère + mise en forme)
     }
 }
+
 /*Fonction de clear de l'écran*/
 void clear(){
     volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
@@ -43,21 +47,7 @@ void clear(){
 //est pressé et 0x60 qui donne le code de la touche.
 char input() {
     unsigned char scancode; //Définission de scancode qui est la valeur retourné par le clavier
-    int xo = subsec;
-
-
     while(!(inb(0x64) & 1)){ //On ATTEND que 0x064 soit égal à 1 (0 = pas pressé, 1 = pressé)
-        
-        if(is_anim == 1){
-            rtc_read_and_class();
-
-            if(subsec != xo){
-                hour_fn_const();
-                seconds = 0;
-                xo = subsec;
-            }
-        }
-
         asm volatile("pause"); //En attendant, on htl le proc pour qu il fasse rien et chauffe pas dans un while
     } 
     scancode = inb(0x60); //On récupère le scancode dans le port 0x60
@@ -72,7 +62,7 @@ char input() {
 }
 //Fonction delay
 void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
-    for(int x = 0; x < count * 1000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
+    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
         asm volatile("nop"); //On ne fait rien
     }
 }
@@ -208,8 +198,6 @@ void afficher_logo(void){
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
     print_at(" SSSSSP'  \"YBBBBBP\"    \"Y8888P\"", 24, 15, 0x0E);
     delay(5);
-
-    is_anim = 1;
 }
 //Fonction affichage du bureau
 void bureau(){
@@ -221,7 +209,7 @@ void bureau(){
 }
 
 /*Fonction principale appelé par le linker.ld*/
-void main() {
+int main() {
     clear(); //
     afficher_logo();
     delay(70);/* code */
@@ -233,16 +221,7 @@ void main() {
     int cursor_x = 13; //On définit un curseur x
     int deb = 13;
 
-    while(is_anim) { //Boucle infini pour le bureau   
-        int xo = subsec;
-        rtc_read_and_class();
-
-            if(subsec != xo){
-                hour_fn_const();
-                seconds = 0;
-                xo = subsec;
-            }
-
+    while(1) { //Boucle infini pour le bureau   
         char c = input(); //On récupère la touche pressé dans c
         if (c == 0) { // Si c = 0 (un relachement de touche (voir ____input___))
             //On ne fait rien
