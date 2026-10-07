@@ -265,3 +265,19 @@ void clearBuffer(char *h){
         h[i] = '\0';
     }
 }
+
+char* fus_char(char *a, char *b){
+    int sia = sizeOf(a);
+    int sib = sizeOf(b);
+    char f[sia + sib];
+
+    for(int i = 0; i < sia; i++){
+        f[i] = a[i];
+    }
+    int x = 0;
+    for(int i = sia; i < sia + sib; i++){
+        f[i] = b[x];
+        x += 1;
+    }
+    return f;
+}

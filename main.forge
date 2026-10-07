@@ -1,0 +1,44 @@
+// Fichier de configuration sForge pour sOS-main
+
+project sOS {
+    arch _i386;
+    osdev = true;
+    out 'sOS';
+    infos = true;
+}
+
+cat sources {
+    // Objets du dossier "os"
+    asm boot = 'os/boot.asm';
+    c kernel = 'os/kernel.c';
+    c math = 'os/math.c';
+    c shell = 'os/shell.c';
+    c util = 'os/util.c';
+    //asm cpu_speed = 'os/cpu_seed.asm';
+    c time_driver = 'os/time_driver.c';
+    c hard = 'os/hardware.c';
+    ld linker = 'os/linker.ld';
+}
+
+branch main {
+
+    forge compile {
+        boot.compile(o, boot);
+        kernel.compile(o, no_std);
+        math.compile(o, no_std);
+        shell.compile(o, no_std);
+        time_driver.compile(o, no_std);
+        hard.compile(o, no_std);
+        //cpu_speed.compile(o, no_std);
+        util.compile(o, no_std);
+    }
+
+    forge link {
+        ld(linker);
+        trans(bin);
+    }
+
+    forge run {
+        qemu();
+    }
+}

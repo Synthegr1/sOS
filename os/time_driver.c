@@ -1,7 +1,9 @@
 #include "util.h"
 #include "kernel.h"
 
-#define O 35
+#define O 66
+
+char date_c[32];
 
 int subsec;
 int seconds;
@@ -45,6 +47,51 @@ void rtc_read_and_class() {
     year    = bcd_to_bin(rtc_read_port(year_adress));
 }
 
+char* find_mounth(int i){
+    switch (i)
+    {
+    case 1:
+        return "January";
+        break;
+    case 2:
+        return "February";
+        break;
+    case 3:
+        return "March";
+        break;
+    case 4:
+        return "April";
+        break;
+    case 5:
+        return "May";
+        break;
+    case 6:
+        return "June";
+        break;
+    case 7:
+        return "July";
+        break;
+    case 8:
+        return "August";
+        break;
+    case 9:
+        return "September";
+        break;
+    case 10:
+        return "October";
+        break;
+    case 11:
+        return "November";
+        break;
+    case 12: 
+        return "December";
+        break;
+    default:
+        return "Mounth Error";
+        break;
+    }
+}
+
 void hour_fn(){
     char hour_c[32];
     char min_c[32];
@@ -69,29 +116,40 @@ void hour_fn_const(){
     char min_c[32];
     char sec_c[32];
     char ssec_c[32];
+    char year_c[32];
+    char mounth_c[32];
+    char day_c[32];
 
     int base_x = O;        
     int sec_x  = base_x + 6;
+    int min_x = base_x + 3;
 
     rtc_read_and_class();
     convertIntTOChar(hour + 2, hour_c);
     convertIntTOChar(min, min_c);
     convertIntTOChar(seconds, sec_c);
     convertIntTOChar(subsec, ssec_c);
-    print_at(hour_c, O, 1, color_af_hour);   
-    print_at(":", 2 + O, 1, color_af_hour);   
-    print_at(min_c, 3 + O, 1, color_af_hour);  
-    print_at(":", 5 + O, 1, color_af_hour);   
+    print_at(hour_c, O, 2, color_af_hour);   
+    print_at(":", 2 + O, 2, color_af_hour);   
+    
+    if(min < 10){
+        print_at("0", min_x, 2, color_af_hour);   // leading zero
+        print_at(min_c, min_x + 1, 2, color_af_hour);
+    } else {
+        print_at(min_c, min_x, 2, color_af_hour);
+    }
+
+    print_at(":", 5 + O, 2, color_af_hour);   
     
     if(seconds < 10){
-        print_at("0", sec_x, 1, color_af_hour);   // leading zero
-        print_at(sec_c, sec_x + 1, 1, color_af_hour);
+        print_at("0", sec_x, 2, color_af_hour);   // leading zero
+        print_at(sec_c, sec_x + 1, 2, color_af_hour);
     } else {
-        print_at(sec_c, sec_x, 1, color_af_hour);
+        print_at(sec_c, sec_x, 2, color_af_hour);
     }
      
-    print_at(":", 8 + O, 1, color_af_hour); 
-    print_at(ssec_c, 9 + O, 1, color_af_hour);  
+    print_at(":", 8 + O, 2, color_af_hour); 
+    print_at(ssec_c, 9 + O, 2, color_af_hour);  
     
 
     if(seconds < 10){
@@ -103,4 +161,17 @@ void hour_fn_const(){
         ps = O;
         b = 1;
     }
+
+    //convertIntTOChar(mounth, mounth_c);
+    convertIntTOChar(year + 2000, year_c);
+    convertIntTOChar(day, day_c);
+
+    int size = sizeOf(find_mounth(mounth));
+    int ds = sizeOf(day_c);
+
+    print_at(find_mounth(mounth), 1, 2, 0x0F);
+    size += 2;
+    print_at(day_c, size, 2, 0x0F);
+    print_at(",", size + ds, 2, 0x0F);
+    print_at(year_c, size + ds + 2, 2, 0x0F);
 }

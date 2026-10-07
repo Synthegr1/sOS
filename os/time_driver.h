@@ -9,6 +9,8 @@ extern int day;
 extern int mounth;
 extern int year;
 
+extern char date_c[32];
+
 extern int color_af_hour;
 
 unsigned char rtc_read_port(int reg);

@@ -1,5 +1,9 @@
 #include "shell.h"
+#include "util.h"
+#include "math.h"
 #include "kernel.h"
+#include "time_driver.h"
+#include "hardware.h"
 
 int posdeb = 1; //Curseur vertical
 char text[100]; //On définit le char pour stocker TOUTE la commande
@@ -7,14 +11,10 @@ int pos = 0; //Le curseur pour voyager dans text
 int cursor_x = 10; //On définit un curseur x
 int echocolor = 0x09;
 
-//Fonction pour intteroger un port processeur (port)
+int is_anim = 0;
+int fg = 4;
 
-//unsigned char = 8 bits & unsigned short = 16 bits
-static inline unsigned char inb(unsigned short port) {
-    unsigned char val; //On définit val comme ce qui sera la réponse du port
-    asm volatile ("inb %1, %0" : "=a"(val) : "Nd"(port)); //On demande au processeur avec 'asm'
-    return val; //On retourne 'asm'
-}
+
 
 //'asm' ajit comme si on disait au C : "Tu sais pas faire ça, on s'en fiche, demande le au processeur tkt !"
 
@@ -23,7 +23,7 @@ static inline unsigned char inb(unsigned short port) {
 
 //Fonction équivalent printf, à executer avec comme argument l'élément a afficher, la postion x,
 //la position y et la couleur (ex : vert = 0x01)
-void print_at(const char* input, int x, int y, int color){
+int print_at(const char* input, int x, int y, int color){
     volatile char* video_memory = (volatile char*)0xb8000; //On définit l'emplacement de la mémoire vidéo VGA
 
     int pos = (y * 80 + x) * 2; //Position du curseur x y ou on va écrire le texte
@@ -34,6 +34,23 @@ void print_at(const char* input, int x, int y, int color){
     }
 }
 
+void init_gr(){
+    posdeb += 3;
+    for(int i = 0; i < 80; i++){
+        print_at("-", i, posdeb - 1, 0x0F);
+    }
+    for(int i = 0; i < 80; i++){
+        print_at("-", i, posdeb - 3, 0x0F);
+    }
+    for(int i = 0; i < 80; i++){
+        print_at("-", i, 23, 0x0F);
+    }
+    print_at(" sOS::kernel# ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
+    print_at(" sOS - Saturn OS - v1.0 ", (80 / 2) - (24 / 2), posdeb - 3, 0x0F);
+    print_at("SHELL", (80 / 2) - 2, 2, 0x05);
+    print_at("INFOS", (80 / 2) - 2, 23, 0x0F);
+}
+
 /*Fonction de clear de l'écran*/
 void clear(){
     volatile char* video_memory = (volatile char*)0xb8000; //On prend l'emplacement de la mémoire Vidéo VGA
@@ -41,13 +58,28 @@ void clear(){
         video_memory[i] = ' '; //On remplace par du vide
         video_memory[i+1] = 0x0F;//Blanc sur fond noir
     }
+    posdeb = 1;
 }
 //______INPUT_______
 //Pour communiquer avec le clavier, il y a 2 ports : 0x64, qui permet de savoir si une touche 
 //est pressé et 0x60 qui donne le code de la touche.
 char input() {
     unsigned char scancode; //Définission de scancode qui est la valeur retourné par le clavier
+    int xo = subsec;
+
+
     while(!(inb(0x64) & 1)){ //On ATTEND que 0x064 soit égal à 1 (0 = pas pressé, 1 = pressé)
+        
+        if(is_anim == 1){
+            rtc_read_and_class();
+
+            if(subsec != xo){
+                hour_fn_const();
+                seconds = 0;
+                xo = subsec;
+            }
+        }
+
         asm volatile("pause"); //En attendant, on htl le proc pour qu il fasse rien et chauffe pas dans un while
     } 
     scancode = inb(0x60); //On récupère le scancode dans le port 0x60
@@ -62,10 +94,18 @@ char input() {
 }
 //Fonction delay
 void delay(int count){ //Prend count en entrée pour indiqué a peu près le temps d'attente voulu (70 = (2-3 sec))
-    for(int x = 0; x < count * 10000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
+    for(int x = 0; x < count * 1000000; x++){ //For avec le count multiplié par un million pour occuper le processeurs ce qui créé l'attente
         asm volatile("nop"); //On ne fait rien
     }
 }
+
+void delay_s(int ms){
+    int target_tick = subsec + 10 * ms;
+    while(subsec < target_tick){
+        asm volatile("pause");
+    }
+}
+
 //Fonction animation du logo
 void afficher_logo(void){
     print_at("                               LL              .d88888b.    .d8888b.", 5, 8, 0x0E);
@@ -198,30 +238,39 @@ void afficher_logo(void){
     print_at("     X88 Y88b. .d88P  Y88b  d88P", 24, 14, 0x0E);
     print_at(" SSSSSP'  \"YBBBBBP\"    \"Y8888P\"", 24, 15, 0x0E);
     delay(5);
+
+    is_anim = 1;
 }
 //Fonction affichage du bureau
 void bureau(){
-    posdeb = -1;
-    print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
-    char text[100]; //On définit le char pour stocker TOUTE la commande
-    int pos = 0; //Le curseur pour voyager dans text
-    int cursor_x = 10; //On définit un curseur x 
+    init_gr();
 }
 
 /*Fonction principale appelé par le linker.ld*/
-int main() {
+void main() {
     clear(); //
     afficher_logo();
     delay(70);/* code */
     clear();
-    print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
-    print_at("sOS::kernel# ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
+    //print_at("Main:", 0, 0, 0x03); //Texte affiché en bleu cyan sur fond noir
     char text[100]; //On définit le char pour stocker TOUTE la commande
     int pos = 0; //Le curseur pour voyager dans text
-    int cursor_x = 13; //On définit un curseur x
-    int deb = 13;
+    int cursor_x = 14; //On définit un curseur x
+    int deb = 14;
 
-    while(1) { //Boucle infini pour le bureau   
+    init_gr();
+
+    while(is_anim) { //Boucle infini pour le bureau  
+        hard_infos();
+        int xo = subsec;
+        rtc_read_and_class();
+
+            if(subsec != xo){
+                hour_fn_const();
+                seconds = 0;
+                xo = subsec;
+            }
+
         char c = input(); //On récupère la touche pressé dans c
         if (c == 0) { // Si c = 0 (un relachement de touche (voir ____input___))
             //On ne fait rien
@@ -229,7 +278,7 @@ int main() {
             run(text); //On run la commande (text[100])
             print_at(" ", cursor_x, posdeb, 0x01);
             posdeb += 2;
-            print_at("sOS::kernel# ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
+            print_at(" sOS::kernel# ", 0, posdeb, 0x02); //Texte affiché en vert sur fond noir
             cursor_x = deb;
             //char space[1] = "";
             for(int g = 0; g < 100; g++){
@@ -259,6 +308,6 @@ int main() {
             print_at("_", cursor_x++, posdeb, 0x80);
             cursor_x -= 1;
         }
-        //asm volatile("pause");
+        asm volatile("pause");
     }
 }

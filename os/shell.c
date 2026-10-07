@@ -450,6 +450,7 @@ double dec_operate(char *input) {
             outw(0x604, 0x2000);
 
         } else if ( compchar(thinks, "clear") == 1){
+            posdeb = 1;
             clear();
             bureau();
 
